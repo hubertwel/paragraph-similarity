@@ -5,24 +5,23 @@ Copy the template, paste it to your GitHub README and edit! -->
 
 # Project Title
 
-Final project for the Building AI course
+Semantic similarity of tweets. The final project for the Building AI course.
 
 ## Summary
 
-Describe briefly in 2-3 sentences what your project is about. About 250 characters is a nice length! 
+This project Finds similar Twitter posts as paragraphs using Doc2Vec from Gensim API. The vectors of entire paragraphs are computed together with some word vectors (dm=0, db_words=1). The printed results include the most similar post (paragraph), the second, the third, the mean and the least similar document. Entire posts are like paragraphs. They may include more than one sentence. The datasets are taken from the French government site, which makes them available for the purpose of machine learning projects.
+The returned results are optimized by selecting the best possible hyperparameters and then, using Optuna trials. At the end of the program, I do a cross-validation using the LinearRegression classifier as an estimator to show the validation and the test accuracy.
 
+2021
 
 ## Background
 
-Which problems does your idea solve? How common or frequent is this problem? What is your personal motivation? Why is this topic important or interesting?
-
-This is how you make a list, if you need one:
-* problem 1
-* problem 2
-* etc.
-
+Using the Twitter search engine (or other social media search engines) is not very good if somebody wants to find the most similar posts. The returned results reflect the keywords that are used and do not seem to take into account the meaning of entire posts. Therefore Gensim created new API with Doc2Vec computing vectors of entire paragraphs, not just word vectors. However, some word vectors may also be simultaneously computed like with Word2Vec. The idea is a few years old, but I wanted to use real, raw data from Twitter to see how similar results will be, not just specially prepared data for the purpose of showing good results.
 
 ## How is it used?
+
+
+
 
 Describe the process of using the solution. In what kind situations is the solution needed (environment, time, etc.)? Who are the users, what kinds of needs should be taken into account?
 
@@ -53,14 +52,18 @@ main()
 
 
 ## Data sources and AI methods
-Where does your data come from? Do you collect it yourself or do you use data collected by someone else?
-If you need to use links, here's an example:
-[Twitter API](https://developer.twitter.com/en/docs)
 
-| Syntax      | Description |
-| ----------- | ----------- |
-| Header      | Title       |
-| Paragraph   | Text        |
+| Syntax            | Description                                                                                                                   |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Datasets          |  English 3rd and 4th random corpus (Twitter dump), 1000 posts each, used as the train and the test corpus                     |
+|                   |  https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |                              | ----------------- |  ---------------------------------------------------------------------------------------------------------------------------- |
+| AI model          |  Gensim Doc2Vec                                                                                                               |
+|                   |  https://radimrehurek.com/gensim/models/doc2vec.html                                                                          |   
+| ----------------- |  ---------------------------------------------------------------------------------------------------------------------------- |
+| Cross-validation  |  scikit-learn 0.22.0 - sklearn.linear_model.LogisticRegression                                                                |
+|                   |  https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html                               |
+|                   |                                                                                                                               |
+
 
 ## Challenges
 
