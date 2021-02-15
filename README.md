@@ -65,39 +65,22 @@ Once you upload an image to your repository, you can link link to it like this (
 If you need to resize images, you have to use an HTML tag, like this:
 <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Sleeping_cat_on_her_back.jpg" width="300">
 
-This is how you create code examples:
-```
-def main():
-   countries = ['Denmark', 'Finland', 'Iceland', 'Norway', 'Sweden']
-   pop = [5615000, 5439000, 324000, 5080000, 9609000]   # not actually needed in this exercise...
-   fishers = [1891, 2652, 3800, 11611, 1757]
-
-   totPop = sum(pop)
-   totFish = sum(fishers)
-
-   # write your solution here
-
-   for i in range(len(countries)):
-      print("%s %.2f%%" % (countries[i], 100.0))    # current just prints 100%
-
-main()
-```
 ## Data sources and AI methods
 
 | Syntax            | Description                                                                                                                   |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Datasets          |  English 3rd and 4th random corpus (Twitter dump), 1000 posts each, used as the train and the test corpus                     |
-|                   |  https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |                              | ----------------- |  ---------------------------------------------------------------------------------------------------------------------------- |
+|                      https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |                              
 | AI model          |  Gensim Doc2Vec                                                                                                               |
 |                   |  https://radimrehurek.com/gensim/models/doc2vec.html                                                                          |   
-| ----------------- |  ---------------------------------------------------------------------------------------------------------------------------- |
+
 | Cross-validation  |  scikit-learn 0.22.0 - sklearn.linear_model.LogisticRegression                                                                |
 |                   |  https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html                               |
-|                   |                                                                                                                               |
+
 
 ## Challenges
 
-Both corpuses, the training and the test corpuses, include just 1000 random Twitter posts each, so they are very small datasets. Therefore the results are not resplendent, but one has to take into account the fact that picking a random post as a candidate for the most similar one to another one, is just 0.001 (1 in a thousand). Having this in mind, the test accuracy about 0.55 is much better than selecting a random choice. 
+Both corpuses, the training and the test corpuses, include just 1000 random Twitter posts each, so they are very small datasets. Therefore the results are not resplendent, but one has to take into account the fact that picking a random post as a candidate for the most similar one to another one, is just 0.001 (1 in a thousand). Having this in mind, the test accuracy about 0.55 is much better than selecting a random choice. Apart ftom that, such **small datasets simply don't have documents very similar to each other**.
 It should also be emphasised that I improved the test accuracy from 0.001 to ca. 0.55 by tuning hypermarameters of Doc2Vec, i.e. trying many different combinations of them. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
 
 ## What next?
