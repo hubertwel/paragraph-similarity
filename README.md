@@ -64,8 +64,8 @@ train_corpus_tagged = list(read_corpus(train_file))
 test_corpus = list(read_corpus(test_file, tokens_only=True))
 ```
 #### Building and training the model on the corpus
-dm=1 variant and dm=0 without dbo_words (without training word vectors) were tested, but returned lower accuracy. Also, many various configurations of the parameters that are internal to the model were tested, but were giving lower accuracy. This is the best configuration of parameters so far. An additional trim_rule was added, so that stopwords and short words of lenght < 3 could be removed, since they are not useful for training the model. They are removed only during the building the model phase, so that the train corpus still includes them and therefore they can be printed, which is better for the user to better comprehend the paragraphs.
-'''
+dm=1 variant and dm=0 without dbow_words (without training word vectors) were tested, but returned lower accuracy. Also, many various configurations of the parameters that are internal to the model were tested, but were giving lower accuracy. This is the best configuration of parameters so far. An additional trim_rule was added, so that stopwords and short words of lenght < 3 could be removed, since they are not useful for training the model. They are removed only during the building the model phase, so that the train corpus still includes them and therefore they can be printed, which is better for the user to better comprehend the paragraphs.
+```
 def trim_rule(word, count, min_count):
     stop_words = set(stopwords.words('english')) 
     # This rule is only used to prune vocabulary during the current method call,
@@ -78,11 +78,11 @@ def trim_rule(word, count, min_count):
 model = Doc2Vec(dm=0, vector_size=80, min_count=3, epochs=50, hs=1, dbow_words=1, trim_rule=trim_rule)
 model.build_vocab(train_corpus_tagged)
 model.train(train_corpus_tagged, total_examples=model.corpus_count, epochs=model.epochs)
-'''
+```
 #### Assessing the model on the train corpus
 Infering paragraph vectors of each paragraph (document) together with some word wectors. I discovered a very interesting thing. Only some word vectors are computed by Doc2Vec when dbow_words was set to 1 (and of course, none word vectors when dbow_words was set to 0). Actually, only 820 word vectors were computed out of almost 5,000 words in the vocabulary. I was doing an experiment trying to supercharge word vectors with tfidf values, but they did not have any impact on Doc2Vec, so I had to withdraw from that eperiment (it can be found in a previous commit).
 A sanity check in the loop below is a check to see whether the model is behaving in a usefully consistent manner, i.e. to verify how many of the inferred documents are found to be most similar to itself. About 90 % is good.
-'''
+```
 ranks = []
 first_ranks = []
 second_ranks = []
@@ -97,18 +97,18 @@ for doc_id in range(len(train_corpus_tagged)):
   inferred_vectors.append(inferred_vector)
 
 counter = collections.Counter(ranks)
-'''
+```
 #### Comparing and printing the most/second-most/third-most/median/least similar documents from the train corpus
 The title says it all. Inferred vectors of the most similar paragraph were very high (about 0.97), but it is still the train corpus. Unfortunately, printed paragraphs do not pass the human eye test, which means they are not very similar despite good vector values, but remember that data tests in this project are very small.
-'''
+```
 print(u'SIMILAR/DISSIMILAR DOCS PER MODEL %s:\n' % model)
 for label, index in [('MOST', 0), ('SECOND-MOST', 1), ('THIRD-MOST', 2), ('MEDIAN', len(sims)//2), ('LEAST', len(sims) - 1)]:
   print(u'%s %s: «%s»\n' % (label, sims[index], ' '.join(train_corpus_tagged[sims[index][0]].words)))
-'''
+```
 #### Assessing the model on the independent data set (test corpus)
 Now, it is time to assess the model on the unseen data set, which in this case is the test corpus. Its size is the same as of the train corpus, i.e. 1,000. **I am using the vectors that were inferred after the training the model on the train corpus and I am applying them on the independent data (the test corpus)**. 
 Note that a sanity check is not relevant here, because the train corpus and the test corpus are not overlapping, so there won't be self similarity of paragraphs here (both sets are disjoint). 
-'''
+```
 ranks_test = []
 first_ranks_test = []
 inferred_vectors_test = []
@@ -117,20 +117,20 @@ for doc_id in range(len(test_corpus)):
   sims_test = model.dv.most_similar([inferred_vector_test], topn=len(model.dv))
   first_ranks_test.append(sims_test[0][0])
   inferred_vectors_test.append(inferred_vector_test)
-'''
+```
 #### Preparing vectors for cross validatiom
 All vectors need to be converted to np arrays so that they could be used in cross validation.
-'''  
+```  
 tags_array_train = np.array(first_ranks)
 vectors_2Darray_train = np.array(inferred_vectors)
 tags_array_test = np.array(first_ranks_test)
 vectors_2Darray_test = np.array(inferred_vectors_test)
 y_train, X_train = tags_array_train, vectors_2Darray_train
 y_test, X_test = tags_array_test, vectors_2Darray_test
-'''
+```
 #### Creating Optuna study
 Optuna is a hyperparameter optimization framework. The difference between parameters (earlier optimized by me in the Doc2Vec) and hyperparameters is that parameters are configuration variables that are internal to the model and whose values can be estimated from data. On the other hand, hyperparameters are configuration variables that are external to the model and whose values cannot be estimated from data. Here, they are optimized by Optuna framework in the objective(trial) method. The number of trial is set to 10, but it can be increased. 
-'''
+```
 def objective(trial):
   # Optimizing hyperparameters:
   classifier_name = trial.suggest_categorical("classifier", ["LogReg"])
@@ -145,11 +145,11 @@ def objective(trial):
 
 study = optuna.create_study(direction="maximize")
 study.optimize(objective, n_trials=10)
-'''
+```
 #### Cross validation
 Cross validation is a model validation technique for assessing how the results of a statistical analysis will generalize to an independent data set. In other words, it is used to evaluate the skill of machine learning models on unseen data. k-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into. It is a popular method, because it generally results in a less biased or less optimistic estimate of the model skill than other methods, such as a simple train/test split.
 I tried many classifiers as estimators. They include LogisticRegression, LinearDiscriminantAnalysis, KNeighborsClassifier, DecisionTreeClassifier and SVC classifiers with various parameters. The worse was the SVC with accuracy close to 0.001. Overall, by cross validating with different classifiers, I improved the test accuracy from 0.001 to ca. 0.55, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability (since corpuses have 1,000 paragraphs each).
-'''
+```
 clf = LogisticRegression(solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
 k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
 score = cross_val_score(clf, X_train, y_train, cv=k_fold, n_jobs=-1, scoring='accuracy')
@@ -158,7 +158,7 @@ print('Validation accuracy: {}'.format(round(np.mean(score)*100, 3)))
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 print("Test accuracy: {:.3f}".format(accuracy_score(y_test, y_pred)))
-'''
+```
 Anybody can use this solution an many users need such a solution. In order to make it popular, the big social media platforms would need to incorporate this technology on their sites. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. Right now, there are only small text boxes for keywords. Then, Twitter, facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models. For instance, facebook could combine it with their LASER, so users could search for multilingual post similarities.
 
 ![Cat](https://upload.wikimedia.org/wikipedia/commons/5/5e/Sleeping_cat_on_her_back.jpg)
