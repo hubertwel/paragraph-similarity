@@ -70,10 +70,10 @@ If you need to resize images, you have to use an HTML tag, like this:
 | Syntax            | Description                                                                                                                   |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Datasets          |  English 3rd and 4th random corpus (Twitter dump), 1000 posts each, used as the train and the test corpus                     |
-|                      https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |                              
+|                   |  https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |                            |                                                                                                                                                   | 
 | AI model          |  Gensim Doc2Vec                                                                                                               |
 |                   |  https://radimrehurek.com/gensim/models/doc2vec.html                                                                          |   
-
+|                                                                                                                                                   |
 | Cross-validation  |  scikit-learn 0.22.0 - sklearn.linear_model.LogisticRegression                                                                |
 |                   |  https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html                               |
 
