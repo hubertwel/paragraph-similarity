@@ -172,7 +172,7 @@ Cross validation is a model validation technique for assessing how the results o
 
 K-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into. It is a popular method, because it generally results in a less biased estimate of the model skill than other methods, such as a simple train/test split.
 
-I tried many classifiers as estimators. They include LogisticRegression, LinearDiscriminantAnalysis, KNeighborsClassifier, DecisionTreeClassifier and SVC classifiers with various parameters. The SVC classifier was the worst with the test accuracy close to 0.001. Overall, by cross validating with different classifiers, I improved the test accuracy from 0.001 to ca. 0.55, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability (since corpuses have 1,000 paragraphs each).
+I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). Overall, by cross validating with different classifiers, **I improved the test accuracy from 0.007 to 0.527, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each).
 ```
 clf = LogisticRegression(solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
 k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
@@ -207,7 +207,7 @@ Both corpuses, the train and the test corpuses, include just 1,000 random Twitte
 
 Apart from that, such **small data sets simply don't have documents very similar to each other**. Apart from that, raw data from Twitter includes many mistypings or missed whitespaces. That makes the learning harder for the algorithm. 
 
-It should also be emphasised that I improved the test accuracy from 0.001 to ca. 0.55 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
+It should also be emphasised that I improved the test accuracy from 0.001 to 0.527 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
 
 ## What next?
 
