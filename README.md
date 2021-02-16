@@ -10,7 +10,7 @@ The final project for the Building AI course.
 
 * Multi-class text classification with Doc2Vec
   
-  This project finds **similar Twitter posts as paragraphs using Doc2Vec from Gensim API**. Doc2vec is an NLP tool for representing documents as vectors and is an extension to     the Word2Vec method. While Word2Vec computes a **feature vector for every word** in the corpus, Doc2Vec computes a **feature vector for every document** in the corpus. Entire   posts are like paragraphs. They may include more than one sentence. The **vectors of entire paragraphs are computed** (together with some word vectors with parameters dm=0,     db_words=1). The printed results include **the most similar post (paragraph), the second, the third, the mean and the least similar post (paragraph)**. Also, the validation     accuracy and the test accuracy are printed out. 
+  This project finds **similar Twitter posts as paragraphs using Doc2Vec from Gensim API**. Doc2vec is an NLP tool for representing documents as vectors and is an extension to     the Word2Vec method. While Word2Vec computes a **feature vector for every word** in the corpus, Doc2Vec computes a **feature vector for every document** in the corpus. Entire   posts are like paragraphs. They may include more than one sentence. The **vectors of entire documents are computed** (together with some word vectors with parameters dm=0,       db_words=1). The printed results include the **most similar post (paragraph)**, the second, the third, the mean and the least similar post (paragraph). Also, the validation     accuracy and the test accuracy are printed out. 
 
 * The use of publicly available data sets as the train corpus and the test corpus
   
@@ -30,7 +30,7 @@ The final project for the Building AI course.
 
 * Personal motivation
   
-  The project was created due to the **lack of such paragraph search possibility on social media** and due to my **personal interest in AI** as well, especially in programming     in **Python*. 
+  The project was created due to the **lack of such paragraph search possibility on social media** and due to my **personal interest in AI** as well, especially in programming     in **Python**. 
 
   Also, I wanted to use **real, raw data from Twitter** to see how similar results will be, not just specially prepared data for the purpose of showing good examples.
 
