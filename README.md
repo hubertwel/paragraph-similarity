@@ -173,7 +173,7 @@ print("Test accuracy: {:.3f}".format(accuracy_score(y_test, y_pred)))
 ```
 Anybody can use this solution and many social media users need it. In order to make it popular, the big social media platforms would need to incorporate this technology on their sites. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. Right now, there are only small text boxes for typing keywords. Then, Twitter, Facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models. For instance, Facebook could combine it with their LASER, so users could search for multilingual post similarities.
 
-![Alt Text](<img src="https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity.jpg width=500)
+![Alt Text](<img src="https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity.jpg width="500">)
 
 ## Data sources and AI methods
 
