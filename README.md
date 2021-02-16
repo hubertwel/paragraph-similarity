@@ -8,19 +8,27 @@ The final project for the Building AI course.
 
 ## Summary
 
-This project finds **similar Twitter posts as paragraphs using Doc2Vec from Gensim API**. 
-The vectors of entire paragraphs are computed together with some word vectors (dm=0, db_words=1). The printed results include the most similar post (paragraph), the second, the third, the mean and the least similar post (paragraph). 
+* Multi-class text classification with Doc2Vec
+This project finds **similar Twitter posts as paragraphs using Doc2Vec from Gensim API**. Doc2vec is an NLP tool for representing documents as vectors and is an extension of the Word2Vec method. While Word2Vec computes a feature vector for every word in the corpus, Doc2Vec computes a feature vector for every document in the corpus. 
 
-Entire posts are like paragraphs. They may include more than one sentence. The data sets are taken from the French government site ( https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/ ), which makes them available for the purpose of machine learning projects.
+Entire posts are like paragraphs. They may include more than one sentence. The vectors of entire paragraphs are computed (together with some word vectors with parameters dm=0, db_words=1). The printed results include the most similar post (paragraph), the second, the third, the mean and the least similar post (paragraph). Also, the validation accuracy and the test accuracy are printed. 
 
+* The use of publicly available data sets as the train corpus and the test corpus
+The data sets are taken from the French government site ( https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/ ), which makes them available for the purpose of machine learning projects.
+
+* Optimization
 The returned results are optimized by **selecting the best possible parameters** and then **the best hyperparameters** using **Optuna trials (optuna.create_study)**. 
 At the end of the program, I do a **cross-validation using the LinearRegression classifier** as an estimator to show the validation accuracy and the test accuracy.
 
 ## Background
 
+* Social media - a search problem and its importance
 Using the Twitter search engine (or other social media search engines) is not very good if somebody wants to find the most similar posts. The returned results reflect the **keywords** that are used and do not seem to take into account **the meaning of entire posts**. Fortunately, Gensim created new API with **Doc2Vec computing vectors of entire paragraphs, not just word vectors**. However, some word vectors may also be simultaneously computed like with Word2Vec. 
 
-The idea of paragraph vectors is a few years old, but I wanted to use **real, raw data from Twitter** to see how similar results will be, not just specially prepared data for the purpose of showing good examples.
+* Personal motivation
+The project was created due to the lack of such paragraph search possibility on social media and due to my personal interest in AI as well, especially in programming in Python. 
+
+Also, I wanted to use **real, raw data from Twitter** to see how similar results will be, not just specially prepared data for the purpose of showing good examples.
 
 ## How is it used?
 
@@ -200,7 +208,7 @@ It should also be emphasised that I improved the test accuracy from 0.001 to ca.
 ## What next?
 
 In order to achieve better validation and test accuracy, one would need to use much larger data sets with millions of records. The availability of such huge, free data sets is still scarce. The big AI companies and other institutions should make more such huge, free data sets available for AI developers for various projects.
-Another thing is to invent more and more accurate models. Sooner or later, models better than Doc2Vec will be created.
+Another thing is to invent more and more accurate models. Sooner or later, better models than Doc2Vec will be created. With better data sets and tools, the outcome of this project could be improved.
 
 ## Acknowledgments
 
