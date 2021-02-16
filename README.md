@@ -171,6 +171,9 @@ clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 print("Test accuracy: {:.3f}".format(accuracy_score(y_test, y_pred)))
 ```
+#### The notebook
+This development process was done on a [Google Colab notebook](https://colab.research.google.com/notebooks/intro.ipynb) that you can find in this repository. 
+
 Anybody can use this solution and many social media users need it. In order to make it popular, the big social media platforms would need to incorporate this technology on their sites. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. Right now, there are only small text boxes for typing keywords. Then, Twitter, Facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models. For instance, Facebook could combine it with their LASER, so users could search for multilingual post similarities.
 
 ![Screenshot](https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity.jpg)
