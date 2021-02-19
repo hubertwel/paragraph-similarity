@@ -220,5 +220,5 @@ Another thing is to invent more and more accurate models. Sooner or later, bette
 
 ## Acknowledgments
 
-* Gensim Doc2Vec model
+* [Gensim Doc2Vec model](https://radimrehurek.com/gensim/models/doc2vec.html)
 
