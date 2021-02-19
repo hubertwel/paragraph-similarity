@@ -211,7 +211,7 @@ Both corpuses, the train and the test corpuses, include just 1,000 random Twitte
 
 Apart from that, such **small data sets simply don't have documents very similar to each other**. Apart from that, raw data from Twitter includes many mistypings or missed whitespaces. That makes the learning harder for the algorithm. 
 
-It should also be emphasised that I improved the test accuracy from 0.001 to 0.527 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
+It should also be emphasised that I improved the test accuracy from 0.001 to 0.549 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
 
 ## What next?
 
