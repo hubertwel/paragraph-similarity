@@ -150,31 +150,35 @@ y_train, X_train = tags_array_train, vectors_2Darray_train
 y_test, X_test = tags_array_test, vectors_2Darray_test
 ```
 #### Creating Optuna study
-Optuna is a hyperparameter optimization framework. The difference between parameters (earlier optimized by me in the Doc2Vec) and hyperparameters is that parameters are configuration variables that are internal to the model and whose values can be estimated from data. On the other hand, hyperparameters are configuration variables that are external to the model and whose values cannot be estimated from data. Here, they are optimized by Optuna framework in the objective(trial) method. The number of trials is set to 20, but it can be increased. 
+Optuna is a hyperparameter optimization framework. The difference between parameters (earlier optimized by me in the Doc2Vec) and hyperparameters is that parameters are configuration variables that are internal to the model and whose values can be estimated from data. On the other hand, hyperparameters are configuration variables that are external to the model and whose values cannot be estimated from data. Here, they are optimized by Optuna framework in the objective(trial) method. The number of trials is set to 30, but it can be increased. 
 ```
+# Define an objective function to be maximized
 def objective(trial):
-  # Optimizing hyperparameters:
-  classifier_name = trial.suggest_categorical("classifier", ["LogReg"])
-  if classifier_name == 'LogReg':
-    logreg_c = trial.suggest_float("logreg_c", 1e-10, 1e10, log=True)
-    clf = linear_model.LogisticRegression(C=logreg_c)
+  # Optimize hyperparameters: 
+    penalty = trial.suggest_categorical("penalty", ['l1', 'l2'])
+    c = trial.suggest_float("C", 5e-1, 15e-1, log=True)
+    fit_intercept = trial.suggest_categorical("fit_intercept", [True, False])
+    intercept_scaling = trial.suggest_float("intercept_scaling", 1e-1, 2e0, log=True)
+    clf = LogisticRegression(penalty=penalty, C=c, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, solver='liblinear', max_iter=300, class_weight='balanced',       multi_class='auto')
   # Scoring method:
     k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
     score = cross_val_score(clf, X_train, y_train, cv=k_fold, n_jobs=-1, scoring='accuracy')
-    accuracy = score.mean()
+    accuracy = np.mean(score)
     return accuracy
 
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=20)
+study.optimize(objective, n_trials=30)
 ```
 #### Cross validation
 Cross validation is a model validation technique for assessing how the results of a statistical analysis will generalize to an independent data set. In other words, it is used to evaluate the skill of machine learning models on unseen data. 
 
 K-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into. It is a popular method, because it generally results in a less biased estimate of the model skill than other methods, such as a simple train/test split.
 
-I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). Overall, by cross validating with different classifiers, **I improved the test accuracy from 0.007 to 0.527, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each).
+I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). As one can see **only LogisticRegression performed relatively well and only with the liblinear solver**. Therefore I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.54**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally I decided to make those scopes not too wide.
+
+Overall, by cross validating with different classifiers and then, by tuning with Optuna, **I improved the test accuracy from 0.007 to 0.54, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each).
 ```
-clf = LogisticRegression(solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
+clf = LogisticRegression(penalty=study.best_params["penalty"], C=study.best_params["C"], fit_intercept=study.best_params["fit_intercept"], intercept_scaling=study.best_params["intercept_scaling"], solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
 k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
 score = cross_val_score(clf, X_train, y_train, cv=k_fold, n_jobs=-1, scoring='accuracy')
 print('score: ', score)
