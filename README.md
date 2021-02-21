@@ -95,7 +95,7 @@ model.build_vocab(train_corpus_tagged)
 model.train(train_corpus_tagged, total_examples=model.corpus_count, epochs=model.epochs)
 ```
 #### Assessing the model on the train corpus
-Here we have the inference of paragraph vectors of each paragraph (document) together with some word wectors. I discovered a very interesting thing. Only some word vectors are computed by Doc2Vec when dbow_words was set to 1 (and of course, none word vectors when dbow_words was set to 0). Actually, only 820 word vectors were computed out of almost 5,000 words in the vocabulary. I was doing an experiment trying to supercharge word vectors with tf-idf values, but they did not have any impact on Doc2Vec, so I had to withdraw from that experiment (it can be found in a previous commit).
+Here we have the inference of paragraph vectors of each paragraph (document) together with some word wectors. I discovered a very interesting thing. Only some word vectors are computed by Doc2Vec when dbow_words was set to 1 (and of course, none word vectors when dbow_words was set to 0). Actually, only 820 word vectors were computed out of almost 5,000 words in the vocabulary. I was doing an experiment trying to supercharge word vectors with tf-idf values, but they did not have any impact on Doc2Vec, so I had to withdraw from that experiment.
 
 A sanity check in the loop below is a check to see whether the model is behaving in a usefully consistent manner, i.e. to verify how many of the inferred documents are found to be the most similar to itself. Almost 90 % of them (printed as zeros, since the most similar document has the index 0) is a satisfactory number.
 ```
@@ -150,7 +150,7 @@ y_train, X_train = tags_array_train, vectors_2Darray_train
 y_test, X_test = tags_array_test, vectors_2Darray_test
 ```
 #### Creating Optuna study
-Optuna is a hyperparameter optimization framework. The difference between parameters (earlier optimized by me in the Doc2Vec) and hyperparameters is that parameters are configuration variables that are internal to the model and whose values can be estimated from data. On the other hand, hyperparameters are configuration variables that are external to the model and whose values cannot be estimated from data. Here, they are optimized by Optuna framework in the objective(trial) method. The number of trials is set to 30, but it can be increased. 
+Optuna is **a hyperparameter optimization framework**. The difference between parameters (earlier optimized by me in the Doc2Vec) and hyperparameters is that **parameters are configuration variables that are internal to the model** and whose values can be estimated from data. On the other hand, **hyperparameters are configuration variables that are external to the model** and whose values cannot be estimated from data. Here, they are optimized by Optuna framework in the objective(trial) method. The number of trials is set to 30, but it can be increased (however, with longer running time). 
 ```
 # Define an objective function to be maximized
 def objective(trial):
@@ -170,27 +170,43 @@ study = optuna.create_study(direction="maximize")
 study.optimize(objective, n_trials=30)
 ```
 #### Cross validation
-Cross validation is a model validation technique for assessing how the results of a statistical analysis will generalize to an independent data set. In other words, it is used to evaluate the skill of machine learning models on unseen data. 
+Cross validation is **a model validation technique for assessing how the results of a statistical analysis will generalize to an independent data set**. In other words, it is used to evaluate the skill of machine learning models on unseen data. 
 
-K-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into. It is a popular method, because it generally results in a less biased estimate of the model skill than other methods, such as a simple train/test split.
+**K-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into**. It is a popular method, because it generally results in a less biased estimate of the model skill than other methods, such as a simple train/test split.
 
-I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). As one can see **only LogisticRegression performed relatively well and only with the liblinear solver**. Therefore I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.549**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally I decided to make those scopes not too wide.
+I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). As one can see **only LogisticRegression performed relatively well and only with the liblinear solver**. Therefore I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.549**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally I decided to make those scopes not too wide. Regarding other parameters of LogisticRegression, like solver='liblinear', max_iter=300, class_weight='balanced' and multi_class='auto', I run the code with their various parameter values by trial and error, so I chose the best I found. I do not pass them to Optuna to save running time, which is already quite long with Optuna trials.
 
-Overall, by cross validating with different classifiers and then, by tuning with Optuna, **I improved the test accuracy from 0.007 to 0.549, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each).
+Then, **I print the score (for each k-fold), the validation accuracy, the train accuracy and the test accuracy**. As one can see, the train accuracy is high, but the test accuracy is much lower. That means that **the model is overfitted**. The results during training were too optimistic given the test on the unseen data. Overall, by cross validating with different classifiers and then, by tuning with Optuna, **I improved the test accuracy from 0.007 to 0.549, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each). **The main cause of overfitting is, however, the size of data sets, which is very small**. The best remedy would be to have much larger data sets with hundreds of thousands, or preferably, millions of Twitter posts in .csv files.
 ```
 clf = LogisticRegression(penalty=study.best_params["penalty"], C=study.best_params["C"], fit_intercept=study.best_params["fit_intercept"], intercept_scaling=study.best_params["intercept_scaling"], solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
 k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
 score = cross_val_score(clf, X_train, y_train, cv=k_fold, n_jobs=-1, scoring='accuracy')
 print('score: ', score)
+print()
 print('Validation accuracy: {}'.format(round(np.mean(score)*100, 3)))
-clf.fit(X_train, y_train)
+clf.fit(X_train, y_train) 
 y_pred = clf.predict(X_test)
+y_train_pred = clf.predict(X_train)
+print("Train accuracy: {:.3f}".format(accuracy_score(y_train, y_train_pred)))
 print("Test accuracy: {:.3f}".format(accuracy_score(y_test, y_pred)))
+```
+#### The confusion matrix
+The final step is **to plot the normalized confusion matrix**. Display_labels, by default, is set to None. That does not mean there are no labels. On the contrary, if there is a label (a tag) in y_pred or y_test, then it is there on the plot. Actually, there are hundreds of them. Note that each corpus contains 1000 different labels, so it is not a simple classification problem with 2 or a few labels. Having so many labels makes it hard to read them on the plot. That's why enlarged the plot to figsize=(20, 20). Making it even larger like figsize=(40, 40) wouldn't make those labels more readible. Nevertheless, even without readible labels, the plot displays the results. **The points on the diagonal are data points similar to themselves. The points that are very close to the diagonal represent the Twitter posts (paragraphs) that are the most similar to a given training data point**. Their **concentration near the diagonal is clearly visible** making the diagonal thicker. And the rest of data points, far from the diagonal, that look like far stars on the sky, are the results that are less similar to a given training data point.
+```
+np.set_printoptions(precision=2)
+title = "Normalized confusion matrix"
+fig, ax = plt.subplots(figsize=(20, 20))
+disp = plot_confusion_matrix(clf, X_test, y_test, display_labels=None, cmap=plt.cm.Blues, normalize='true', ax=ax)
+disp.ax_.set_title(title)
+print(title)
+print(disp.confusion_matrix)
+  
+plt.show()
 ```
 #### The notebook
 This development process was done on a [Google Colab notebook](https://colab.research.google.com/notebooks/intro.ipynb) that you can find in this repository. 
 
-Anybody can use this solution and many social media users need it. In order to make it popular, the big social media platforms would need to incorporate this technology on their sites. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. Right now, there are only small text boxes for typing keywords. Then, Twitter, Facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models. For instance, Facebook could combine it with their LASER, so users could search for multilingual post similarities.
+Anybody can use this solution and many social media users need it. In order to make it popular, **the big social media platforms would need to incorporate this technology on their sites**. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. **Right now, there are only small text boxes for typing keywords**. Then, **Twitter, Facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models**. For instance, **Facebook could combine it with their LASER, so users could search for multilingual post similarities**.
 
 ![Screenshot](https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity.jpg)
 
@@ -215,8 +231,8 @@ It should also be emphasised that I improved the test accuracy from 0.001 to 0.5
 
 ## What next?
 
-In order to achieve better validation and test accuracy, one would need to use much larger data sets with millions of records. The availability of such huge, free data sets is still scarce. The big AI companies and other institutions should make more such huge, free data sets available for AI developers for various projects.
-Another thing is to invent more and more accurate models. Sooner or later, better models than Doc2Vec will be created. With better data sets and tools, the outcome of this project could be improved.
+**In order to achieve better validation and test accuracy, one would need to use much larger data sets with millions of records**. The availability of such huge, free data sets is still scarce. **The big AI companies and other institutions should make more such huge, free data sets available for AI developers for various projects**.
+Another thing is **to invent more and more accurate models**. Sooner or later, better models than Doc2Vec will be created. **With better data sets and tools, the outcome of this project could be improved**.
 
 ## Acknowledgments
 
