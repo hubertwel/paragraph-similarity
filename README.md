@@ -174,9 +174,9 @@ Cross validation is **a model validation technique for assessing how the results
 
 **K-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into**. It is a popular method, because it generally results in a less biased estimate of the model skill than other methods, such as a simple train/test split.
 
-I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). As one can see **only LogisticRegression performed relatively well and only with the liblinear solver**. Therefore I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.549**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally I decided to make those scopes not too wide. Regarding other parameters of LogisticRegression, like solver='liblinear', max_iter=300, class_weight='balanced' and multi_class='auto', I run the code with their various parameter values by trial and error, so I chose the best I found. I do not pass them to Optuna to save running time, which is already quite long with Optuna trials.
+I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). As one can see only **LogisticRegression performed relatively well and only with the liblinear solver**. Therefore I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.555**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally, I decided to make those scopes not too wide. Regarding other parameters of LogisticRegression, like solver='liblinear', max_iter=300, class_weight='balanced' and multi_class='auto', I run the code with their various parameter values by trial and error, so I chose the best I found. I do not pass them to Optuna to save running time, which is already quite long with Optuna trials.
 
-Then, **I print the score (for each k-fold), the validation accuracy, the train accuracy and the test accuracy**. As one can see, the train accuracy is high, but the test accuracy is much lower. That means that **the model is overfitted**. The results during training were too optimistic given the test on the unseen data. Overall, by cross validating with different classifiers and then, by tuning with Optuna, **I improved the test accuracy from 0.007 to 0.549, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each). **The main cause of overfitting is, however, the size of data sets, which is very small**. The best remedy would be to have much larger data sets with hundreds of thousands, or preferably, millions of Twitter posts in .csv files.
+Then, **I print the score (for each k-fold), the validation accuracy, the train accuracy and the test accuracy**. As one can see, the train accuracy is high, but the test accuracy is much lower. That means that **the model is overfitted**. The results during training were too optimistic comparing to the test on the unseen data. Overall, by cross validating with different classifiers and then, by tuning hyperparameters with Optuna, **I improved the test accuracy from 0.007 to 0.555, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each). **The main cause of overfitting is, however, the size of data sets, which is very small**. The best remedy would be to have much larger data sets with hundreds of thousands, or preferably, millions of Twitter posts in .csv files.
 ```
 clf = LogisticRegression(penalty=study.best_params["penalty"], C=study.best_params["C"], fit_intercept=study.best_params["fit_intercept"], intercept_scaling=study.best_params["intercept_scaling"], solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
 k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
@@ -190,8 +190,44 @@ y_train_pred = clf.predict(X_train)
 print("Train accuracy: {:.3f}".format(accuracy_score(y_train, y_train_pred)))
 print("Test accuracy: {:.3f}".format(accuracy_score(y_test, y_pred)))
 ```
+#### Print TP, FP, FN, TN
+In the next step, **I compute True Positives, False Positives, False Negatives and True Negatives from a confusion matrix of multiclass classification**. **True Positive (TP)** means that The actual value was positive and the model predicted a positive value. **False Positive (FP)** means that the actual value was negative but the model predicted a positive value. **False Negative (FN)** means that the actual value was positive but the model predicted a negative value. And **Yrue Negative (TN)** means that the actual value was negative and the model predicted a negative value.
+
+The True Positives are simply the diagonal elements. The False Positives are the sum of the respective column without the diagonal element. The False Negatives are the sum of the respective row without the diagonal element. And the True Negatives are all other data points. Therefore, the row & column that correspond to the respective class, should be deleted from the confusion matrix and then, all the remaining matrix values should be summed up.
+```
+cm = confusion_matrix(y_test, y_pred)
+num_classes = len(unique_labels(y_test, y_pred))
+print('Number of classes: ', num_classes)
+true_positive = np.diag(cm)
+tp = sum(true_positive)
+print('True positives: ', tp)
+false_positive = []
+for x in range(num_classes):
+  false_positive.append(sum(cm[:,x]) - cm[x,x])
+fp = sum(false_positive)
+print('False positives: ', fp)
+false_negative = []
+for x in range(num_classes):
+  false_negative.append(sum(cm[x,:]) - cm[x,x])
+fn = sum(false_negative)
+print('False negatives: ', fn)
+true_negative = []
+for x in range(num_classes):
+  # delete x-th row
+  cm_without_row = np.delete(cm, x, 0)
+  # delete x-th column
+  cm_without_row_col = np.delete(cm_without_row, x, 1)
+  result = list(map(sum, cm_without_row_col))
+  true_negative.append(sum(result))
+  
+tn = sum(true_negative)
+print('True negatives: ', tn)
+```
+
 #### The confusion matrix
-The final step is **to plot the normalized confusion matrix**. Display_labels, by default, is set to None. That does not mean there are no labels. On the contrary, if there is a label (a tag) in y_pred or y_test, then it is there on the plot. Actually, there are hundreds of them. Note that each corpus contains 1000 different labels, so it is not a simple classification problem with 2 or a few labels. Having so many labels makes it hard to read them on the plot. That's why enlarged the plot to figsize=(20, 20). Making it even larger like figsize=(40, 40) wouldn't make those labels more readible. Nevertheless, even without readible labels, the plot displays the results. **The points on the diagonal are data points similar to themselves. The points that are very close to the diagonal represent the Twitter posts (paragraphs) that are the most similar to a given training data point**. Their **concentration near the diagonal is clearly visible** making the diagonal thicker. And the rest of data points, far from the diagonal, that look like far stars on the sky, are the results that are less similar to a given training data point.
+The final step is **to plot the normalized confusion matrix**. A confusion matrix is used to evaluate the quality of the output of a classifier on a data set. **The diagonal elements represent the number of points for which the predicted label is equal to the true label, while off-diagonal elements are those that are mislabeled by the classifier**.
+
+Display_labels, by default, is set to None. That does not mean that there are no labels. On the contrary, if there is a label (a tag) in y_pred or y_test, then it is there, on the plot. Actually, there are hundreds of them. Note that each corpus contains 1000 different labels, so it is not a simple classification problem with two or a few classes. Having so many labels makes it hard to read them on the plot. That's why, I enlarged the plot to figsize=(20, 20). Making it even larger like figsize=(40, 40) wouldn't make those labels more readible. Nevertheless, even without readible labels, the plot displays the points with their clear concentration on and near the diagonal.
 ```
 np.set_printoptions(precision=2)
 title = "Normalized confusion matrix"
@@ -208,7 +244,9 @@ This development process was done on a [Google Colab notebook](https://colab.res
 
 Anybody can use this solution and many social media users need it. In order to make it popular, **the big social media platforms would need to incorporate this technology on their sites**. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. **Right now, there are only small text boxes for typing keywords**. Then, **Twitter, Facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models**. For instance, **Facebook could combine it with their LASER, so users could search for multilingual post similarities**.
 
-![Screenshot](https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity.jpg)
+![Screenshot](https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity_1.jpg)
+
+![Screenshot](https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity_2.jpg)
 
 ## Data sources and AI methods
 
