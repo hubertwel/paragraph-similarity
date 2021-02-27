@@ -10,7 +10,7 @@ The final project for the Building AI course.
 
 * Multi-class text classification with Doc2Vec
   
-  This project finds **similar Twitter posts as paragraphs using Doc2Vec from Gensim API**. Doc2vec is an NLP tool for representing documents as vectors and is an extension to     the Word2Vec method. While Word2Vec computes a **feature vector for every word** in the corpus, Doc2Vec computes a **feature vector for every document** in the corpus. Entire   posts are like paragraphs. They may include more than one sentence. The **vectors of entire documents are computed** (together with some word vectors with parameters dm=0,       db_words=1). The printed results include the **most similar post (paragraph)**, the second, the third, the mean and the least similar post (paragraph). Also, the validation     accuracy and the test accuracy are printed out. 
+  This project finds **similar Twitter posts as paragraphs using Doc2Vec from Gensim API**. Doc2vec is an NLP tool for representing documents as vectors and is an extension to     the Word2Vec method. While Word2Vec computes a **feature vector for every word** in the corpus, Doc2Vec computes a **feature vector for every document** in the corpus. Entire   posts are like paragraphs. They may include more than one sentence. The **vectors of entire documents are computed** (together with some word vectors with parameters dm=0,       db_words=1). The printed results include the **most similar post (paragraph)**, the second, the third, the mean and the least similar post (paragraph).
 
 * The use of publicly available data sets as the train corpus and the test corpus
   
@@ -20,7 +20,14 @@ The final project for the Building AI course.
 * Optimization
   
   The returned results are optimized by **selecting the best possible parameters** and then **the best hyperparameters** using **Optuna trials (optuna.create_study)**. 
-  At the end of the program, I do a **cross-validation using the LinearRegression classifier** as an estimator to show the **validation accuracy** and the **test accuracy**.
+  
+* Cross validation
+
+  At the end of the program, I do a **k-fold cross-validation using the LinearRegression classifier** as an estimator. Then, the **validation accuracy**, the **train accuracy**   and the **test accuracy** are printed.
+  
+* The confusion matrix
+
+  Finally, I compute **True Positives, False Positives, False Negatives and True Negatives from a confusion matrix of multiclass classification** and I plot **the confusion       matrix**.
 
 ## Background
 
@@ -191,9 +198,9 @@ print("Train accuracy: {:.3f}".format(accuracy_score(y_train, y_train_pred)))
 print("Test accuracy: {:.3f}".format(accuracy_score(y_test, y_pred)))
 ```
 #### Print TP, FP, FN, TN
-In the next step, **I compute True Positives, False Positives, False Negatives and True Negatives from a confusion matrix of multiclass classification**. **True Positive (TP)** means that The actual value was positive and the model predicted a positive value. **False Positive (FP)** means that the actual value was negative but the model predicted a positive value. **False Negative (FN)** means that the actual value was positive but the model predicted a negative value. And **Yrue Negative (TN)** means that the actual value was negative and the model predicted a negative value.
+In the next step, **I compute True Positives, False Positives, False Negatives and True Negatives from a confusion matrix of multiclass classification**. **True Positive (TP)** means that the actual value was positive and the model predicted a positive value. **False Positive (FP)** means that the actual value was negative, but the model predicted a positive value. **False Negative (FN)** means that the actual value was positive, but the model predicted a negative value. And **True Negative (TN)** means that the actual value was negative and the model predicted a negative value.
 
-The True Positives are simply the diagonal elements. The False Positives are the sum of the respective column without the diagonal element. The False Negatives are the sum of the respective row without the diagonal element. And the True Negatives are all other data points. Therefore, the row & column that correspond to the respective class, should be deleted from the confusion matrix and then, all the remaining matrix values should be summed up.
+The True Positives are simply the diagonal elements of the confusion matrix. The False Positives are the sum of the respective column without the diagonal element. The False Negatives are the sum of the respective row without the diagonal element. And the True Negatives are all other data points. Therefore, the row and column that correspond to the respective class, should be deleted from the confusion matrix and then, all the remaining matrix values should be summed up.
 ```
 cm = confusion_matrix(y_test, y_pred)
 num_classes = len(unique_labels(y_test, y_pred))
@@ -227,7 +234,7 @@ print('True negatives: ', tn)
 #### The confusion matrix
 The final step is **to plot the normalized confusion matrix**. A confusion matrix is used to evaluate the quality of the output of a classifier on a data set. **The diagonal elements represent the number of points for which the predicted label is equal to the true label, while off-diagonal elements are those that are mislabeled by the classifier**.
 
-Display_labels, by default, is set to None. That does not mean that there are no labels. On the contrary, if there is a label (a tag) in y_pred or y_test, then it is there, on the plot. Actually, there are hundreds of them. Note that each corpus contains 1000 different labels, so it is not a simple classification problem with two or a few classes. Having so many labels makes it hard to read them on the plot. That's why, I enlarged the plot to figsize=(20, 20). Making it even larger like figsize=(40, 40) wouldn't make those labels more readible. Nevertheless, even without readible labels, the plot displays the points with their clear concentration on and near the diagonal.
+Display_labels, by default, is set to None. That does not mean that there are no labels. On the contrary, if there is a label (a tag) in y_pred or y_test, then it is there, on the plot. Actually, there are hundreds of them. Note that each corpus contains 1000 labels, so it is not a simple classification problem with two or a few classes. Y_pred and y_true contain almost 700 unique labels. Having so many labels makes it hard to read them on the plot. That's why, I enlarged the plot to figsize=(20, 20). Making it even larger like figsize=(40, 40) wouldn't make those labels more readible. Nevertheless, even without readible labels, the plot displays the points with their clear concentration on and near the diagonal.
 ```
 np.set_printoptions(precision=2)
 title = "Normalized confusion matrix"
@@ -242,7 +249,7 @@ plt.show()
 #### The notebook
 This development process was done on a [Google Colab notebook](https://colab.research.google.com/notebooks/intro.ipynb) that you can find in this repository. 
 
-Anybody can use this solution and many social media users need it. In order to make it popular, **the big social media platforms would need to incorporate this technology on their sites**. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. **Right now, there are only small text boxes for typing keywords**. Then, **Twitter, Facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models**. For instance, **Facebook could combine it with their LASER, so users could search for multilingual post similarities**.
+Anybody can use this solution and many social media users need it. In order to make it popular, **the big social media platforms would need to incorporate this technology on their sites**. First they would need to create the text areas, so users could paste entire paragraphs (posts) there. **Right now, there are only small text boxes for typing keywords** on those sites. Then, **Twitter, Facebook, etc. would need to use Gensim Doc2Vec models or their own, even better, models**. For instance, **Facebook could combine it with their LASER, so users could search for multilingual post similarities**.
 
 ![Screenshot](https://github.com/hubertwel/paragraph-similarity/blob/main/paragraph-similarity/images/paragraph_similarity_1.jpg)
 
@@ -263,9 +270,9 @@ Anybody can use this solution and many social media users need it. In order to m
 
 Both corpuses, the train and the test corpuses, include just 1,000 random Twitter posts each, so they are very small data sets. Therefore, the results are not resplendent, but one has to take into account the fact that picking a random post as a candidate for the most similar one to another one, is just 0.001 (1 in a thousand). Having this in mind, the test accuracy about 0.55 is much better than selecting a random choice. 
 
-Apart from that, such **small data sets simply don't have documents very similar to each other**. Apart from that, raw data from Twitter includes many mistypings or missed whitespaces. That makes the learning harder for the algorithm. 
+Apart from that, such **small data sets simply don't have documents very similar to each other**. Also, **raw data from Twitter includes many mistypings or missed whitespaces**. That makes the learning harder for the algorithm. 
 
-It should also be emphasised that I improved the test accuracy from 0.001 to 0.549 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
+It should also be emphasised that I improved the test accuracy from 0.001 to 0.555 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
 
 ## What next?
 
