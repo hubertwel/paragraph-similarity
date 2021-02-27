@@ -263,8 +263,12 @@ Anybody can use this solution and many social media users need it. In order to m
 |                   |  https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |
 | AI model          |  Gensim Doc2Vec                                                                                                               |
 |                   |  https://radimrehurek.com/gensim/models/doc2vec.html                                                                          |
+| Optimization      |  Optuna optimization framework                                                                                                |
+|                   |  https://optuna.org/                                                                                                          |
 | Cross-validation  |  scikit-learn 0.22.0 - sklearn.linear_model.LogisticRegression                                                                |
 |                   |  https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html                               |
+| Confusion matrix  |  scikit-learn 0.22.0 - sklearn.metrics.confusion_matrix                                                                       |
+|                   |  https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html                                      |
 
 ## Challenges
 
@@ -282,4 +286,9 @@ Another thing is **to invent more and more accurate models**. Sooner or later, b
 ## Acknowledgments
 
 * [Gensim Doc2Vec model](https://radimrehurek.com/gensim/models/doc2vec.html)
+* [Optuna optimization framework](https://optuna.org/)
+* [Getting Accurate Scikit Learn models using Optuna: A Hyper-parameter framework](https://towardsdatascience.com/exploring-optuna-a-hyper-parameter-framework-using-logistic- regression-84bd622cd3a5)
+* [How To Compare Machine Learning Algorithms in Python with scikit-learn](https://machinelearningmastery.com/compare-machine-learning-algorithms-python-scikit-learn/)
+* [How to extract False Positive, False Negative from a confusion matrix of multiclass classification](https://stackoverflow.com/questions/47899463/how-to-extract-false-positive-false-negative-from-a-confusion-matrix-of-multicl)
+* [Confusion matrix](https://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html)
 
