@@ -287,8 +287,7 @@ Another thing is **to invent more and more accurate models**. Sooner or later, b
 
 * [Gensim Doc2Vec model](https://radimrehurek.com/gensim/models/doc2vec.html)
 * [Optuna optimization framework](https://optuna.org/)
-* [Getting Accurate Scikit Learn models using Optuna: A Hyper-parameter framework]
-  (https://towardsdatascience.com/exploring-optuna-a-hyper-parameter-framework-using-logistic-regression-84bd622cd3a5)
+* [Getting Accurate Scikit Learn models using Optuna: A Hyper-parameter framework](https://towardsdatascience.com/exploring-optuna-a-hyper-parameter-framework-using-logistic-regression-84bd622cd3a5)
 * [How To Compare Machine Learning Algorithms in Python with scikit-learn](https://machinelearningmastery.com/compare-machine-learning-algorithms-python-scikit-learn/)
 * [How to Configure k-Fold Cross-Validation](https://machinelearningmastery.com/how-to-configure-k-fold-cross-validation/)
 * [How to extract False Positive, False Negative from a confusion matrix of multiclass classification](https://stackoverflow.com/questions/47899463/how-to-extract-false-positive-false-negative-from-a-confusion-matrix-of-multicl)
