@@ -261,7 +261,7 @@ Anybody can use this solution and many social media users need it. In order to m
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Datasets          |  English 3rd and 4th random corpus (Twitter dump), 1000 posts each, used as the train and the test corpus                     |
 |                   |  https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |
-| AI model          |  Gensim Doc2Vec                                                                                                               |
+| AI model          |  Gensim Doc2Vec 4.0.0                                                                                                         |
 |                   |  https://radimrehurek.com/gensim/models/doc2vec.html                                                                          |
 | NLTK              |  Natural Language Toolkit 3.2.5                                                                                               |
 |                   |  https://www.nltk.org/                                                                                                        |
