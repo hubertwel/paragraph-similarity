@@ -33,7 +33,7 @@ The final project for the Building AI course.
 
 * Social media - a search problem and its importance
   
-  Using the Twitter search engine (or other social media search engines) is not very good if somebody wants to find the most similar posts. The returned results reflect the       **keywords** that are used and do not seem to take into account **the meaning of entire posts**. Fortunately, Gensim created new API with **Doc2Vec computing vectors of entire   paragraphs, not just word vectors**. However, some word vectors may also be simultaneously computed like with Word2Vec. 
+  Using the Twitter search engine (or other social media search engines) is not very good if somebody wants to find the most similar posts. The returned results reflect the       **keywords** that are used and do not seem to take into account **the meaning of entire posts**. Fortunately, Gensim created new API with **Doc2Vec vectors of entire   paragraphs, not just word vectors**. However, some word vectors may also be simultaneously computed like with Word2Vec. 
 
 * Personal motivation
   
@@ -52,7 +52,7 @@ pip install --pre --upgrade gensim
 pip install optuna
 ```
 #### Preparing the data sets
-This is the reading randomtweets3.txt and randomtweets3.txt files. They have .txt extension, but it is the csv format.
+First, the program reads randomtweets3.txt and randomtweets4.txt files. They have .txt extension, but this is the csv format. The randomtweets3.txt file is the train corpus and the randomtweets4.txt file is the test corpus.
 
 Strip_tags, strip_multiple_whitespaces are used as filters. Removing stopwords and short words is postponed to the building the model phase. Adding other filters didn't increase accuracy. On the contrary, sometimes accuracy was even lower, so additional filters are not used.
 ```
@@ -135,7 +135,7 @@ Now, it is time to assess the model on the unseen data set, which in this case i
 
 **I am using the vectors that were inferred after the training the model on the train corpus and I am applying them on the independent data (the test corpus)**. 
 
-Note that a sanity check is not relevant here, because the train corpus and the test corpus are not overlapping, so there won't be self similarity of paragraphs here (both sets are disjoint). 
+Note that a sanity check is not relevant here, because the train corpus and the test corpus are not overlapping, so there won't be self-similarity of paragraphs here (both sets are disjoint). 
 ```
 ranks_test = []
 first_ranks_test = []
@@ -181,7 +181,7 @@ Cross validation is **a model validation technique for assessing how the results
 
 **K-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into**. It is a popular method, because it generally results in a less biased estimate of the model skill than other methods, such as a simple train/test split.
 
-I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). As one can see only **LogisticRegression performed relatively well and only with the liblinear solver**. Therefore I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.555**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally, I decided to make those scopes not too wide. Regarding other parameters of LogisticRegression, like solver='liblinear', max_iter=300, class_weight='balanced' and multi_class='auto', I run the code with their various parameter values by trial and error, so I chose the best I found. I do not pass them to Optuna to save running time, which is already quite long with Optuna trials.
+I tried many classifiers as estimators. The worst **test accuracy** was **GaussianNB** - 0.007, then **DecisionTreeClassifier** - 0.018, **SVC** - 0.028, **RandomForestClassifier** - 0.081, **KNeighborsClassifier** - 0.084, **LinearDiscriminantAnalysis** - 0.158 and **LogisticRegression - 0.527** (with the validation accuracy 11.6). As one can see, only **LogisticRegression performed relatively well and only with the liblinear solver**. Therefore, I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.555**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally, I decided to make those scopes not too wide. Regarding other parameters of LogisticRegression, like solver='liblinear', max_iter=300, class_weight='balanced' and multi_class='auto', I run the code with their various parameter values by trial and error, so I chose the best I found. I do not tune them with Optuna to save running time, which is already quite long with Optuna trials.
 
 Then, **I print the score (for each k-fold), the validation accuracy, the train accuracy and the test accuracy**. As one can see, the train accuracy is high, but the test accuracy is much lower. That means that **the model is overfitted**. The results during training were too optimistic comparing to the test on the unseen data. Overall, by cross validating with different classifiers and then, by tuning hyperparameters with Optuna, **I improved the test accuracy from 0.007 to 0.555, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each). **The main cause of overfitting is, however, the size of data sets, which is very small**. The best remedy would be to have much larger data sets with hundreds of thousands, or preferably, millions of Twitter posts in .csv files.
 ```
@@ -234,7 +234,7 @@ print('True negatives: ', tn)
 #### The confusion matrix
 The final step is **to plot the normalized confusion matrix**. A confusion matrix is used to evaluate the quality of the output of a classifier on a data set. **The diagonal elements represent the number of points for which the predicted label is equal to the true label, while off-diagonal elements are those that are mislabeled by the classifier**.
 
-Display_labels, by default, is set to None. That does not mean that there are no labels. On the contrary, if there is a label (a tag) in y_pred or y_test, then it is there, on the plot. Actually, there are hundreds of them. Note that each corpus contains 1000 labels, so it is not a simple classification problem with two or a few classes. Y_pred and y_true contain almost 700 unique labels. Having so many labels makes it hard to read them on the plot. That's why, I enlarged the plot to figsize=(20, 20). Making it even larger like figsize=(40, 40) wouldn't make those labels more readible. Nevertheless, even without readible labels, the plot displays the points with their clear concentration on and near the diagonal.
+Display_labels, by default, is set to None. That does not mean that there are no labels. On the contrary, if there is a label (a tag) in y_pred or y_test, then it is there, on the plot. Actually, there are hundreds of them. Note that each corpus contains 1000 labels, so it is not a simple classification problem with two or a few classes. Y_pred and y_true contain 629 unique labels. Having so many labels makes it hard to read them on the plot. That's why, I enlarged the plot to figsize=(20, 20). Making it even larger like figsize=(40, 40) wouldn't make those labels more readible. Nevertheless, even without readible labels, the plot displays the points with their clear concentration on and near the diagonal.
 ```
 np.set_printoptions(precision=2)
 title = "Normalized confusion matrix"
@@ -263,20 +263,20 @@ Anybody can use this solution and many social media users need it. In order to m
 |                   |  https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/    |
 | AI model          |  Gensim Doc2Vec                                                                                                               |
 |                   |  https://radimrehurek.com/gensim/models/doc2vec.html                                                                          |
-| Optimization      |  Optuna optimization framework                                                                                                |
+| Optimization      |  Optuna optimization framework 2.5.0                                                                                                |
 |                   |  https://optuna.org/                                                                                                          |
-| Cross-validation  |  scikit-learn 0.22.0 - sklearn.linear_model.LogisticRegression                                                                |
+| Cross-validation  |  scikit-learn 0.22.2 - sklearn.linear_model.LogisticRegression                                                                |
 |                   |  https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html                               |
-| Confusion matrix  |  scikit-learn 0.22.0 - sklearn.metrics.confusion_matrix                                                                       |
+| Confusion matrix  |  scikit-learn 0.22.2 - sklearn.metrics.confusion_matrix                                                                       |
 |                   |  https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html                                      |
 
 ## Challenges
 
 Both corpuses, the train and the test corpuses, include just 1,000 random Twitter posts each, so they are very small data sets. Therefore, the results are not resplendent, but one has to take into account the fact that picking a random post as a candidate for the most similar one to another one, is just 0.001 (1 in a thousand). Having this in mind, the test accuracy about 0.55 is much better than selecting a random choice. 
 
-Apart from that, such **small data sets simply don't have documents very similar to each other**. Also, **raw data from Twitter includes many mistypings or missed whitespaces**. That makes the learning harder for the algorithm. 
+Apart from that, such **small data sets simply don't have documents very similar to each other**. Also, **raw data from Twitter includes many mistypings or missed whitespaces**. That makes the learning process harder for the algorithm. 
 
-It should also be emphasised that I improved the test accuracy from 0.001 to 0.555 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using, of course, real raw data from Twitter dumps).
+It should also be emphasised that I improved the test accuracy from 0.001 to 0.555 by tuning parameters of Doc2Vec, i.e. trying many different combinations of them and then, by tuning hyperparameters with Optuna. Also, I tried several different classifiers for cross validation. The printed results are the best so far, but of course the big challenge would be to make results better (using real, raw data from Twitter dumps).
 
 ## What next?
 
