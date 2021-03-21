@@ -2,6 +2,9 @@
 created by Reaktor Innovations and University of Helsinki. 
 Copy the template, paste it to your GitHub README and edit! -->
 
+<!-- Semantic similarity of tweets with Doc2Vec and Optuna
+Author: Hubert Welew https://github.com/hubertwel -->
+
 # Semantic similarity of tweets
 
 The final project for the Building AI course.
@@ -14,7 +17,7 @@ The final project for the Building AI course.
 
 * The use of publicly available data sets as the train corpus and the test corpus
   
-  The data sets are taken from the **French government site**, which makes them available for the purpose of machine learning projects. 
+  The data sets are taken from the **French government site** that makes them available for the purpose of machine learning projects. 
   ( https://www.data.gouv.fr/fr/datasets/credibility-corpus-with-several-datasets-twitter-web-database-in-french-and-english/ )
   
 * Optimization
@@ -122,16 +125,14 @@ for doc_id in range(len(train_corpus_tagged)):
 counter = collections.Counter(ranks)
 ```
 #### Comparing and printing the most/second-most/third-most/median/least similar documents from the train corpus
-The title says it all. The inferred vectors of the most similar paragraph were very high (about 0.97), but it is just the train corpus. 
-
-Unfortunately, printed paragraphs do not pass the human eye test, which means they are not very similar despite good vector values, but remember that data tests in this project are very small.
+A random document from the test corpus is picked. Then, the above documents from the train corpus are found. The inferred vector of the most similar paragraph is not very high (often about 0.5). Moreover, printed paragraphs usually do not pass the human eye test, which means they are not very similar, but remember that data tests in this project are very small.
 ```
 print(u'SIMILAR/DISSIMILAR DOCS PER MODEL %s:\n' % model)
 for label, index in [('MOST', 0), ('SECOND-MOST', 1), ('THIRD-MOST', 2), ('MEDIAN', len(sims)//2), ('LEAST', len(sims) - 1)]:
   print(u'%s %s: «%s»\n' % (label, sims[index], ' '.join(train_corpus_tagged[sims[index][0]].words)))
 ```
 #### Assessing the model on the independent data set (test corpus)
-Now, it is time to assess the model on the unseen data set, which in this case is the test corpus. Its size is the same as of the train corpus, i.e. 1,000. 
+Now, it is time to assess the model on the entire unseen data set, which in this case is the test corpus. Its size is the same as of the train corpus, i.e. 1,000. 
 
 **I am using the vectors that were inferred after the training the model on the train corpus and I am applying them on the independent data (the test corpus)**. 
 
@@ -166,7 +167,7 @@ def objective(trial):
     c = trial.suggest_float("C", 5e-1, 15e-1, log=True)
     fit_intercept = trial.suggest_categorical("fit_intercept", [True, False])
     intercept_scaling = trial.suggest_float("intercept_scaling", 1e-1, 2e0, log=True)
-    clf = LogisticRegression(penalty=penalty, C=c, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, solver='liblinear', max_iter=300, class_weight='balanced',       multi_class='auto')
+    clf = LogisticRegression(penalty=penalty, C=c, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
   # Scoring method:
     k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
     score = cross_val_score(clf, X_train, y_train, cv=k_fold, n_jobs=-1, scoring='accuracy')
@@ -181,9 +182,9 @@ Cross validation is **a model validation technique for assessing how the results
 
 **K-Fold cross validation is the procedure with a single parameter called k that refers to the number of groups that a given data sample is to be split into**. It is a popular method, because it generally results in a less biased estimate of the model skill than other methods, such as a simple train/test split.
 
-I tried many classifiers as estimators. The worst **test accuracy** was **Gaussian Naive Bayes** - 0.007, then **Decision Tree** - 0.018, **Support Vector Machine** - 0.028, **Random Forest** - 0.074, **K-Nearest Neighbors** - 0.084, **Linear Discriminant Analysis** - 0.158 and **Logistic Regression - 0.527** (with the validation accuracy 11.6 %). As one can see, only **Logistic Regression performed relatively well and only with the liblinear solver**. Therefore, I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.555**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally, I decided to make those scopes not too wide. Regarding other parameters of Logistic Regression, like solver='liblinear', max_iter=300, class_weight='balanced' and multi_class='auto', I run the code with their various parameter values by trial and error, so I chose the best I found. I do not tune them with Optuna to save running time, which is already quite long with Optuna trials.
+I tried many classifiers as estimators. The worst **test accuracy** was with **Gaussian Naive Bayes** - 0.007, then **Decision Tree** - 0.018, **Support Vector Machine** - 0.028, **Random Forest** - 0.074, **K-Nearest Neighbors** - 0.084, **Linear Discriminant Analysis** - 0.158 and **Logistic Regression - 0.527** (with the validation accuracy 11.6 %). As one can see, only **Logistic Regression performed relatively well and only with the liblinear solver**. Therefore, I decided to optimize only this classifier with Optuna (see above). **I tuned hyperparameters C, fit_intercept and intercept_scaling** and that improved the test accuracy to **0.555**. The optimization helps to tune hyperparameters, but it requires parameters itself. Choosing the search scope for C and intercept_scaling was difficult. It turned out that making wide search scopes often made the test accuracy worse, so finally, I decided to make those scopes not too wide. Regarding other parameters of Logistic Regression, like solver='liblinear', max_iter=300, class_weight='balanced' and multi_class='auto', I run the code with their various parameter values by trial and error, so I chose the best I found. I do not tune them with Optuna to save running time that is already quite long with Optuna trials.
 
-Then, **I print the score (for each k-fold), the validation accuracy, the train accuracy and the test accuracy**. As one can see, the train accuracy is high, but the test accuracy is much lower. That means that **the model is overfitted**. The results during training were too optimistic comparing to the test on the unseen data. Overall, by cross validating with different classifiers and then, by tuning hyperparameters with Optuna, **I improved the test accuracy from 0.007 to 0.555, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each). **The main cause of overfitting is, however, the size of data sets, which is very small**. The best remedy would be to have much larger data sets with hundreds of thousands, or preferably, millions of Twitter posts in .csv files.
+Then, **I print the score (for each k-fold), the validation accuracy, the train accuracy and the test accuracy**. As one can see, the train accuracy is high (0.991), but the test accuracy is much lower (0.555). That means that **the model is overfitted**. The results during training were too optimistic comparing to the test on the unseen data. Overall, by cross validating with different classifiers and then, by tuning hyperparameters with Optuna, **I improved the test accuracy from 0.007 to 0.555, which is relatively good comparing to finding the most similar paragraph randomly with 0.001 probability** (since corpuses have 1,000 paragraphs each). **The main cause of overfitting is, however, the size of data sets, which is very small**. The best remedy would be to have much larger data sets with hundreds of thousands, or preferably, millions of Twitter posts in .csv files.
 ```
 clf = LogisticRegression(penalty=study.best_params["penalty"], C=study.best_params["C"], fit_intercept=study.best_params["fit_intercept"], intercept_scaling=study.best_params["intercept_scaling"], solver='liblinear', max_iter=300, class_weight='balanced', multi_class='auto')
 k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
@@ -200,7 +201,7 @@ print("Test accuracy: {:.3f}".format(accuracy_score(y_test, y_pred)))
 #### Print TP, FP, FN, TN
 In the next step, **I compute True Positives, False Positives, False Negatives and True Negatives from a confusion matrix of multiclass classification**. **True Positive (TP)** means that the actual value was positive and the model predicted a positive value. **False Positive (FP)** means that the actual value was negative, but the model predicted a positive value. **False Negative (FN)** means that the actual value was positive, but the model predicted a negative value. And **True Negative (TN)** means that the actual value was negative and the model predicted a negative value.
 
-The True Positives are simply the diagonal elements of the confusion matrix. The False Positives are the sum of the respective column without the diagonal element. The False Negatives are the sum of the respective row without the diagonal element. And the True Negatives are all other data points. Therefore, the row and column that correspond to the respective class, should be deleted from the confusion matrix and then, all the remaining matrix values should be summed up.
+The True Positives are simply the diagonal elements of the confusion matrix. The False Positives are the sum of the respective column values without the diagonal element. The False Negatives are the sum of the respective row values without the diagonal element. And the True Negatives are all other values. Therefore, the row and column that correspond to the respective class, should be deleted from the confusion matrix and then, all the remaining matrix values should be summed up.
 ```
 cm = confusion_matrix(y_test, y_pred)
 num_classes = len(unique_labels(y_test, y_pred))
@@ -274,7 +275,7 @@ Anybody can use this solution and many social media users need it. In order to m
 
 ## Challenges
 
-Both corpuses, the train and the test corpuses, include just 1,000 random Twitter posts each, so they are very small data sets. Therefore, the results are not resplendent, but one has to take into account the fact that picking a random post as a candidate for the most similar one to another one, is just 0.001 (1 in a thousand). Having this in mind, the test accuracy about 0.55 is much better than selecting a random choice. 
+Both corpuses, the train and the test corpuses, include just 1,000 random Twitter posts each, so they are very small data sets. Therefore, the results are not resplendent, but one has to take into account the fact that picking a random post as a candidate for the most similar one to another one, is just 0.001 (1 in a thousand). Having this in mind, the test accuracy 0.555 is much better than selecting a random choice. 
 
 Apart from that, such **small data sets simply don't have documents very similar to each other**. Also, **raw data from Twitter includes many mistypings or missed whitespaces**. That makes the learning process harder for the algorithm. 
 
